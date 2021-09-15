@@ -135,6 +135,9 @@ func checkRedisCluster(cr *redisv1beta1.RedisCluster) [][]string {
 
 // ExecuteFailoverOperation will execute redis failover operations
 func ExecuteFailoverOperation(cr *redisv1beta1.RedisCluster) {
+	// TODO 通过redis的cluster reset指令刷新集群状态:
+	//   因为节点掉线重启后不会自动加入集群，需要先cluster reset 再 redis-cli --cluster add-node重新加入
+	//   这样做是为了解决Pod内容器重启的请看，Pod重建后PodIp发生变化，应该只需要redis-cli --cluster add-node当做新节点处理就好
 	executeFailoverCommand(cr, "leader")
 	executeFailoverCommand(cr, "follower")
 }
@@ -147,6 +150,7 @@ func executeFailoverCommand(cr *redisv1beta1.RedisCluster, role string) {
 	for podCount := 0; podCount <= int(*replicas)-1; podCount++ {
 		logger.Info("Executing redis failover operations", "Redis Node", podName+strconv.Itoa(podCount))
 		client := configureRedisClient(cr, podName+strconv.Itoa(podCount))
+		// https://cloud.tencent.com/developer/section/1374004
 		cmd := redis.NewStringCmd("cluster", "reset")
 		err := client.Process(cmd)
 		if err != nil {

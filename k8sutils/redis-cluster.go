@@ -78,6 +78,7 @@ func CreateRedisLeader(cr *redisv1beta1.RedisCluster) error {
 	if cr.Spec.RedisLeader.RedisConfig != nil {
 		prop.ExternalConfig = cr.Spec.RedisLeader.RedisConfig.AdditionalRedisConfig
 	}
+	// TODO 创建或更新Redis Cluster Leader STS
 	return prop.CreateRedisClusterSetup(cr)
 }
 
@@ -90,6 +91,7 @@ func CreateRedisFollower(cr *redisv1beta1.RedisCluster) error {
 	if cr.Spec.RedisFollower.RedisConfig != nil {
 		prop.ExternalConfig = cr.Spec.RedisFollower.RedisConfig.AdditionalRedisConfig
 	}
+	// TODO 创建或更新Redis Cluster  Follower STS
 	return prop.CreateRedisClusterSetup(cr)
 }
 
@@ -130,6 +132,7 @@ func (service RedisClusterSTS) CreateRedisClusterSetup(cr *redisv1beta1.RedisClu
 	logger := stateFulSetLogger(cr.Namespace, stateFulName)
 	labels := getRedisLabels(stateFulName, "cluster", service.RedisStateFulType)
 	objectMetaInfo := generateObjectMetaInformation(stateFulName, cr.Namespace, labels, generateStatefulSetsAnots())
+	// TODO 创建或更新Redis Cluster Leader / Follower STS
 	err := CreateOrUpdateStateFul(
 		cr.Namespace,
 		objectMetaInfo,
