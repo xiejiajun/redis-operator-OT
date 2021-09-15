@@ -44,6 +44,7 @@ func AsOwner(cr *redisv1beta1.Redis) metav1.OwnerReference {
 // redisAsOwner generates and returns object refernece
 func redisAsOwner(cr *redisv1beta1.Redis) metav1.OwnerReference {
 	trueVar := true
+	// TODO 配置Owner引用关系
 	return metav1.OwnerReference{
 		APIVersion: cr.APIVersion,
 		Kind:       cr.Kind,

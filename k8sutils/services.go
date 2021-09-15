@@ -137,6 +137,7 @@ func serviceLogger(namespace string, name string) logr.Logger {
 func CreateOrUpdateHeadlessService(namespace string, serviceMeta metav1.ObjectMeta, labels map[string]string, ownerDef metav1.OwnerReference) error {
 	logger := serviceLogger(namespace, serviceMeta.Name)
 	storedService, err := getService(namespace, serviceMeta.Name)
+	// TODO 生成无头服务定义
 	serviceDef := generateHeadlessServiceDef(serviceMeta, labels, ownerDef)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -154,6 +155,7 @@ func CreateOrUpdateHeadlessService(namespace string, serviceMeta metav1.ObjectMe
 // CreateOrUpdateService method will create or update Redis service
 func CreateOrUpdateService(namespace string, serviceMeta metav1.ObjectMeta, labels map[string]string, ownerDef metav1.OwnerReference, enableMetrics bool) error {
 	logger := serviceLogger(namespace, serviceMeta.Name)
+	// TODO 创建用于将Redis服务暴露给外部的ClusterIP类型的service配置
 	serviceDef := generateServiceDef(serviceMeta, labels, enableMetrics, ownerDef)
 	storedService, err := getService(namespace, serviceMeta.Name)
 	if err != nil {

@@ -50,18 +50,23 @@ type containerParameters struct {
 // CreateOrUpdateStateFul method will create or update Redis service
 func CreateOrUpdateStateFul(namespace string, stsMeta metav1.ObjectMeta, labels map[string]string, params statefulSetParameters, ownerDef metav1.OwnerReference, containerParams containerParameters) error {
 	logger := stateFulSetLogger(namespace, stsMeta.Name)
+	// TODO 尝试获取STS对象
 	storedStateful, err := GetStateFulSet(namespace, stsMeta.Name)
+	// TODO 构建STS对象配置
 	statefulSetDef := generateStateFulSetsDef(stsMeta, labels, params, ownerDef, containerParams)
 	if err != nil {
+		// TODO 将最新配置保存到annotation里面
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(statefulSetDef); err != nil {
 			logger.Error(err, "Unable to patch redis statefulset with comparison object")
 			return err
 		}
 		if errors.IsNotFound(err) {
+			// TODO 不存在则创建
 			return createStateFulSet(namespace, statefulSetDef)
 		}
 		return err
 	}
+	// TODO 存在则Patch
 	return patchStateFulSet(storedStateful, statefulSetDef, namespace)
 }
 

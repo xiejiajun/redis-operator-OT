@@ -11,17 +11,22 @@ var (
 // CreateStandAloneService method will create standalone service for Redis
 func CreateStandAloneService(cr *redisv1beta1.Redis) error {
 	logger := serviceLogger(cr.Namespace, cr.ObjectMeta.Name)
+	// TODO 构造标签
 	labels := getRedisLabels(cr.ObjectMeta.Name, "standalone", "standalone")
 	if cr.Spec.RedisExporter != nil && cr.Spec.RedisExporter.Enabled {
 		enableMetrics = true
 	}
+	// TODO 生成K8s 资源Meta信息
 	objectMetaInfo := generateObjectMetaInformation(cr.ObjectMeta.Name, cr.Namespace, labels, generateServiceAnots())
+	// TODO 生成headless service
 	headlessObjectMetaInfo := generateObjectMetaInformation(cr.ObjectMeta.Name+"-headless", cr.Namespace, labels, generateServiceAnots())
+	// TODO 创建无头服务，用于STS
 	err := CreateOrUpdateHeadlessService(cr.Namespace, headlessObjectMetaInfo, labels, redisAsOwner(cr))
 	if err != nil {
 		logger.Error(err, "Cannot create standalone headless service for Redis")
 		return err
 	}
+	// TODO 创建用于将Redis服务暴露给外部的ClusterIP类型的service
 	err = CreateOrUpdateService(cr.Namespace, objectMetaInfo, labels, redisAsOwner(cr), enableMetrics)
 	if err != nil {
 		logger.Error(err, "Cannot create standalone service for Redis")
@@ -33,13 +38,17 @@ func CreateStandAloneService(cr *redisv1beta1.Redis) error {
 // CreateStandAloneRedis will create a standalone redis setup
 func CreateStandAloneRedis(cr *redisv1beta1.Redis) error {
 	logger := stateFulSetLogger(cr.Namespace, cr.ObjectMeta.Name)
+	// TODO 打上standalone标签
 	labels := getRedisLabels(cr.ObjectMeta.Name, "standalone", "standalone")
+	// TODO 生成K8s 资源Meta信息
 	objectMetaInfo := generateObjectMetaInformation(cr.ObjectMeta.Name, cr.Namespace, labels, generateStatefulSetsAnots())
+	// TODO 创建或者更新standalone节点
 	err := CreateOrUpdateStateFul(cr.Namespace,
 		objectMetaInfo,
 		labels,
 		generateRedisStandaloneParams(cr),
 		redisAsOwner(cr),
+		// TODO 创建生成Container相关的参数
 		generateRedisStandaloneContainerParams(cr),
 	)
 	if err != nil {
@@ -52,6 +61,7 @@ func CreateStandAloneRedis(cr *redisv1beta1.Redis) error {
 // generateRedisStandalone generates Redis standalone information
 func generateRedisStandaloneParams(cr *redisv1beta1.Redis) statefulSetParameters {
 	replicas := int32(1)
+	// TODO 构建用于构建StatefulSet的参数
 	res := statefulSetParameters{
 		Replicas:          &replicas,
 		NodeSelector:      cr.Spec.NodeSelector,

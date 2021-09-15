@@ -56,10 +56,12 @@ func (r *RedisReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	if err := controllerutil.SetControllerReference(instance, instance, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
+	// TODO 创建单机版Redis
 	err = k8sutils.CreateStandAloneRedis(instance)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+	// TODO 为单机版Redis创建Service
 	err = k8sutils.CreateStandAloneService(instance)
 	if err != nil {
 		return ctrl.Result{}, err
