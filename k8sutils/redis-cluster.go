@@ -2,6 +2,7 @@ package k8sutils
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	redisv1beta1 "redis-operator/api/v1beta1"
 )
 
@@ -131,7 +132,7 @@ func (service RedisClusterSTS) getReplicaCount(cr *redisv1beta1.RedisCluster) *i
 func (service RedisClusterSTS) CreateRedisClusterSetup(cr *redisv1beta1.RedisCluster) error {
 	stateFulName := cr.ObjectMeta.Name + "-" + service.RedisStateFulType
 	logger := stateFulSetLogger(cr.Namespace, stateFulName)
-	labels := getRedisLabels(stateFulName, "cluster", service.RedisStateFulType)
+	labels := getRedisLabels(cr.ObjectMeta, stateFulName, "cluster", service.RedisStateFulType)
 	objectMetaInfo := generateObjectMetaInformation(stateFulName, cr.Namespace, labels, generateStatefulSetsAnots())
 	err := CreateOrUpdateStateFul(
 		cr.Namespace,
@@ -152,7 +153,7 @@ func (service RedisClusterSTS) CreateRedisClusterSetup(cr *redisv1beta1.RedisClu
 func (service RedisClusterService) CreateRedisClusterService(cr *redisv1beta1.RedisCluster) error {
 	serviceName := cr.ObjectMeta.Name + "-" + service.RedisServiceRole
 	logger := serviceLogger(cr.Namespace, serviceName)
-	labels := getRedisLabels(serviceName, "cluster", service.RedisServiceRole)
+	labels := getRedisLabels(cr.ObjectMeta, serviceName, "cluster", service.RedisServiceRole)
 	if cr.Spec.RedisExporter != nil && cr.Spec.RedisExporter.Enabled {
 		enableMetrics = true
 	}
@@ -172,10 +173,21 @@ func (service RedisClusterService) CreateRedisClusterService(cr *redisv1beta1.Re
 	return nil
 }
 
-func getRedisLabels(name, setupType, role string) map[string]string {
-	return map[string]string{
+func getRedisLabels(meta metav1.ObjectMeta, name, setupType, role string) map[string]string {
+	return MergeLabels(meta.Labels, map[string]string{
 		"app":              name,
 		"redis_setup_type": setupType,
 		"role":             role,
+	})
+}
+
+func MergeLabels(l ...map[string]string) map[string]string {
+	res := make(map[string]string)
+
+	for _, v := range l {
+		for lKey, lValue := range v {
+			res[lKey] = lValue
+		}
 	}
+	return res
 }
